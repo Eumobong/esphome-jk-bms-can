@@ -147,7 +147,7 @@ interval:
             uint16_t jk_errormask = id(errors_bitmask).state;
             int batt_mods = ${batt_modules};
             // Alarms
-            if ((jk_errormask & 0x04) | (jk_errormask & 0x80) | (jk_errormask & 0x400)) { // Hight.Voltage.Alarm JK bit 2,7,10 
+            if ((jk_errormask & 0x04) | (jk_errormask & 0x400)) { // Hight.Voltage.Alarm JK bit 2,10 removed bit 7 which is pressure diff same as cell imbalance
                can_mesg[0] = 0x02; // bit 1
             }
             if ((jk_errormask & 0x08) | (jk_errormask & 0x800)) { // Low.Voltage.Alarm JK bit 3,11 
@@ -228,7 +228,7 @@ interval:
                can_mesg[2] = 0;
                can_mesg[3] = 0;
             }
-            if ((jk_errormask & 0x04) | (jk_errormask & 0x80) | (jk_errormask & 0x400) | (jk_errormask & 0x02) | (jk_errormask & 0x10) | (jk_errormask & 0x100) | (jk_errormask & 0x1000) | (jk_errormask & 0x2000)) { // Disable charging on overvoltage/overtemperature/jkbms error
+            if ((jk_errormask & 0x04) | (jk_errormask & 0x400) | (jk_errormask & 0x02) | (jk_errormask & 0x10) | (jk_errormask & 0x100) | (jk_errormask & 0x1000) | (jk_errormask & 0x2000)) { // Disable charging on overvoltage/overtemperature/jkbms error
                can_mesg[0] = uint16_t((id(charging_voltage).state - ${rebulk_offset}) * 10) & 0xff;
                can_mesg[1] = uint16_t((id(charging_voltage).state - ${rebulk_offset}) * 10) >> 8 & 0xff;
                can_mesg[2] = 0;
