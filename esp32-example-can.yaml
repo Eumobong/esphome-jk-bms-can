@@ -135,6 +135,8 @@ canbus:
         - lambda: |-
             // ESP_LOGI("main", "received can id: 0x305 ACK");
             id(can_305_rx) = 0;
+
+
 interval:
   - interval: 1000ms
     then:
@@ -343,6 +345,7 @@ interval:
            } else {
              id(can_305_rx) ++;
            }
+
 binary_sensor:
   - platform: jk_bms
     balancing:
@@ -566,6 +569,7 @@ sensor:
                 (minutes ? to_string(minutes) + "m " : "") +
                 (to_string(seconds) + "s")
               ).c_str();
+              
 text_sensor:
   - platform: jk_bms
     errors:
