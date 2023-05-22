@@ -234,7 +234,7 @@ interval:
                can_mesg[2] = 0;
                can_mesg[3] = 0;
                if (id(absorption_script).is_running()) id(absorption_script).stop();
-               id(charge_status) = "Error";
+               id(charge_status) = "Alarm";
             }
             if ((id(discharging_switch).state) & (id(inverter_discharging).state)) {
               can_mesg[4] = uint16_t(${discharge_a} * 10) & 0xff;
