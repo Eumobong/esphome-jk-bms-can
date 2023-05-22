@@ -146,30 +146,30 @@ interval:
             uint8_t can_mesg[] = {0, 0, 0, 0, 0, 0, 0, 0};
             uint16_t jk_errormask = id(errors_bitmask).state;
             int batt_mods = ${batt_modules};
-            // Alarms - reordered the alarm sequence so that higher priority is later and takes priority
-            if (jk_errormask & 0x200) { // Low.Temp.Alarm JK bit 9
-               can_mesg[0] = 0x10; // bit 4
-            }
-            if (jk_errormask & 0x40) { // Discharge.Over.Current JK bit 6
-               can_mesg[0] = 0x80; // bit 7
-            }
-            if ((jk_errormask & 0x04) | (jk_errormask & 0x400)) { // Hight.Voltage.Alarm JK bit 2,10 removed bit 7 which is pressure diff same as cell imbalance
+            // Alarms
+            if ((jk_errormask & 0x04) | (jk_errormask & 0x400)) { // Hight.Voltage.Alarm JK bit 2,7,10 
                can_mesg[0] = 0x02; // bit 1
             }
             if ((jk_errormask & 0x08) | (jk_errormask & 0x800)) { // Low.Voltage.Alarm JK bit 3,11 
-               can_mesg[0] = 0x04; // bit 2
+               can_mesg[0] = can_mesg[0] | 0x04; // bit 2
             }
             if ((jk_errormask & 0x02) | (jk_errormask & 0x10) | (jk_errormask & 0x100)) { // Hight.Temp.Alarm JK bit 1,4,8
-               can_mesg[0] = 0x08; // bit 3
+               can_mesg[0] = can_mesg[0] | 0x08; // bit 3
             }
-            if (jk_errormask & 0x80) { // Cell Imbalance JK bit 7
-               can_mesg[1] = 0x10; // bit 4 
+            if (jk_errormask & 0x200) { // Low.Temp.Alarm JK bit 9
+               can_mesg[0] = can_mesg[0] | 0x10; // bit 4
+            }
+            if (jk_errormask & 0x40) { // Discharge.Over.Current JK bit 6
+               can_mesg[0] = can_mesg[0] | 0x80; // bit 7
             }
             if (jk_errormask & 0x20) { // Charge.Over.Current JK bit 5
                can_mesg[1] = 0x01; // bit 0
             }
             if ((jk_errormask & 0x1000) | (jk_errormask & 0x2000)) { // BMS Internal JK bit 12,13
-               can_mesg[1] = 0x08; // bit 3
+               can_mesg[1] = can_mesg[1] | 0x08; // bit 3
+            }
+            if (jk_errormask & 0x80) { // Cell Imbalance JK bit 7
+               can_mesg[1] = can_mesg[1] | 0x10; // bit 4 
             }
             /// Warnings
             can_mesg[2] = 0x00;
@@ -286,13 +286,20 @@ interval:
           can_id: 0x35C
           data: !lambda |-
             uint8_t can_mesg[1];
+            uint16_t jk_errormask = id(errors_bitmask).state;
             if ((id(charging_switch).state) & (id(inverter_charging).state)) {
                can_mesg[0] = 0x80;
+               if ((jk_errormask & 0x04) | (jk_errormask & 0x400) | (jk_errormask & 0x02) | (jk_errormask & 0x10) | (jk_errormask & 0x100) | (jk_errormask & 0x1000) | (jk_errormask & 0x2000)) { // Disable charging on overvoltage/overtemperature/jkbms error
+                can_mesg[0] = 0x00;
+               }
             } else {
                can_mesg[0] = 0x00;
             }
             if ((id(discharging_switch).state) & (id(inverter_discharging).state)) {
                can_mesg[0] = can_mesg[0] | 0x40;
+               if ((jk_errormask & 0x08) | (jk_errormask & 0x800) | (jk_errormask & 0x02) | (jk_errormask & 0x10) | (jk_errormask & 0x100) | (jk_errormask & 0x1000) | (jk_errormask & 0x2000)) { // Disable discharging on undervoltage/overtemperature/jkbms error
+                can_mesg[0] = can_mesg[0] | 0x00;
+               }
             }
             can_mesg[1] = 0x00;
             ESP_LOGI("main", "send can id: 0x35C hex: %x %x", can_mesg[0], can_mesg[1]);
