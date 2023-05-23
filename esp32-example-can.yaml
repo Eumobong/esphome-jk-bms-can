@@ -287,18 +287,19 @@ interval:
           data: !lambda |-
             uint8_t can_mesg[1];
             uint16_t jk_errormask = id(errors_bitmask).state;
+            can_mesg[0] = 0x00;
             if ((id(charging_switch).state) & (id(inverter_charging).state)) {
-               can_mesg[0] = 0x80;
                if ((jk_errormask & 0x04) | (jk_errormask & 0x400) | (jk_errormask & 0x02) | (jk_errormask & 0x10) | (jk_errormask & 0x100) | (jk_errormask & 0x1000) | (jk_errormask & 0x2000)) { // Disable charging on overvoltage/overtemperature/jkbms error
                 can_mesg[0] = 0x00;
+               } else {
+                can_mesg[0] = 0x80;
                }
-            } else {
-               can_mesg[0] = 0x00;
             }
             if ((id(discharging_switch).state) & (id(inverter_discharging).state)) {
-               can_mesg[0] = can_mesg[0] | 0x40;
                if ((jk_errormask & 0x08) | (jk_errormask & 0x800) | (jk_errormask & 0x02) | (jk_errormask & 0x10) | (jk_errormask & 0x100) | (jk_errormask & 0x1000) | (jk_errormask & 0x2000)) { // Disable discharging on undervoltage/overtemperature/jkbms error
-                can_mesg[0] = can_mesg[0] | 0x00;
+                can_mesg[0] = can_mesg[0];
+               } else {
+                can_mesg[0] = can_mesg[0] | 0x40;
                }
             }
             can_mesg[1] = 0x00;
