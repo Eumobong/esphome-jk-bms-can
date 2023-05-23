@@ -176,8 +176,8 @@ interval:
             can_mesg[3] = 0x00;
             /// Flags
             can_mesg[4] = batt_mods; // Module in parallel
-            can_mesg[5] = 0x00;
-            can_mesg[6] = 0x00;
+            can_mesg[5] = 0x50;
+            can_mesg[6] = 0x4E;
             can_mesg[7] = 0x00; // DIP switches 1,3 10000100 0x84
             ESP_LOGI("main", "send can id: 0x359 hex: %x %x %x %x %x %x %x %x", can_mesg[0], can_mesg[1], can_mesg[2], can_mesg[3], can_mesg[4], can_mesg[5], can_mesg[6], can_mesg[7]);
             return {can_mesg[0], can_mesg[1], can_mesg[2], can_mesg[3], can_mesg[4], can_mesg[5], can_mesg[6], can_mesg[7]};
