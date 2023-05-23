@@ -8,7 +8,7 @@ substitutions:
   name: jk-bms-can
 # --------------------------
 # Number of Battery modules max 8. Each LX U5.4-L battery is 5.4kWh, select the number closest to your capactiy eg 3.2V * 280Ah * 16 = 14.3kWh
-  batt_modules: "3"
+  batt_modules: "6"
 # --------------------------------------
 # Battery Charging setting:
 # This is max charging amps eg 50A, for Bulk - Constant Current charging(CC), should be at least 10A less than BMS change current protection, 0.5C max 
