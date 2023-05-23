@@ -1,4 +1,4 @@
-# Version info, for full change log:- https://github.com/Uksa007/esphome-jk-bms-can/discussions/2
+# Version info, for full change log:- https://github.com/Uksa007/esphome-jk-bms-can/discussions/2 Edited for use with Deye battery SUNB-5.0-G01-48-PC
 # V1.13.3 Improve compatibility with Deye and other inverters
 # V1.13.2 Send Max Temperature of T1, T2 to inverter
 # V1.13.1 Fix compile issues with new version of ESPhome 2023.4.0, set rebulk offset to 2.5
@@ -7,13 +7,13 @@ substitutions:
 # name that will appear in esphome and homeassistant.
   name: jk-bms-can
 # --------------------------
-# Number of Battery modules max 8. Each LX U5.4-L battery is 5.4kWh, select the number closest to your capactiy eg 3.2V * 280Ah * 16 = 14.3kWh
-  batt_modules: "6"
+# Number of Battery modules max 32. Each Deye SUNB-5.0-G01-48-PC battery is 4.91kWh, select the number closest to your capactiy eg 3.2V * 280Ah * 16 = 14.3kWh
+  batt_modules: "3"
 # --------------------------------------
 # Battery Charging setting:
 # This is max charging amps eg 50A, for Bulk - Constant Current charging(CC), should be at least 10A less than BMS change current protection, 0.5C max 
   charge_a: "80"
-# Absorption Voltage for Constant Voltage charging(CV). This is Absorption voltage you want the inverter to change with 55.2 eg 3.45v/cell for 16 cells 48V battery. 
+# Absorption Voltage for Constant Voltage charging(CV). This is Absorption voltage you want the inverter to change with 55.2 eg 3.45v/cell for 16 cells 48V battery. Max of 57.6V for Deye
   absorption_v: "55.2"
 # Absorption time in minutes to hold charge voltage after charge voltage is reached eg 30
   absorption_time: "30"
@@ -171,9 +171,31 @@ interval:
             if (jk_errormask & 0x80) { // Cell Imbalance JK bit 7
                can_mesg[1] = can_mesg[1] | 0x10; // bit 4 
             }
-            /// Warnings
-            can_mesg[2] = 0x00;
-            can_mesg[3] = 0x00;
+            /// Warnings - use same as Alarms
+            if ((jk_errormask & 0x04) | (jk_errormask & 0x400)) { // Hight.Voltage.Alarm JK bit 2,7,10 
+               can_mesg[2] = 0x02; // bit 1
+            }
+            if ((jk_errormask & 0x08) | (jk_errormask & 0x800)) { // Low.Voltage.Alarm JK bit 3,11 
+               can_mesg[2] = can_mesg[2] | 0x04; // bit 2
+            }
+            if ((jk_errormask & 0x02) | (jk_errormask & 0x10) | (jk_errormask & 0x100)) { // Hight.Temp.Alarm JK bit 1,4,8
+               can_mesg[2] = can_mesg[2] | 0x08; // bit 3
+            }
+            if (jk_errormask & 0x200) { // Low.Temp.Alarm JK bit 9
+               can_mesg[2] = can_mesg[2] | 0x10; // bit 4
+            }
+            if (jk_errormask & 0x40) { // Discharge.Over.Current JK bit 6
+               can_mesg[2] = can_mesg[2] | 0x80; // bit 7
+            }
+            if (jk_errormask & 0x20) { // Charge.Over.Current JK bit 5
+               can_mesg[3] = 0x01; // bit 0
+            }
+            if ((jk_errormask & 0x1000) | (jk_errormask & 0x2000)) { // BMS Internal JK bit 12,13
+               can_mesg[3] = can_mesg[3] | 0x08; // bit 3
+            }
+            if (jk_errormask & 0x80) { // Cell Imbalance JK bit 7
+               can_mesg[3] = can_mesg[3] | 0x10; // bit 4 
+            }
             /// Flags
             can_mesg[4] = batt_mods; // Module in parallel
             can_mesg[5] = 0x50;
@@ -341,9 +363,9 @@ interval:
             return {can_mesg[0], can_mesg[1], can_mesg[2], can_mesg[3], can_mesg[4], can_mesg[5], can_mesg[6], can_mesg[7]};
       - delay: 10ms
 
-      - canbus.send: # PYLON
+      - canbus.send: # Deye
           can_id: 0x35E
-          data: [0x50, 0x59, 0x4C, 0x4F, 0x4E, 0x20, 0x20, 0x20]
+          data: [0x44, 0x65, 0x79, 0x65, 0x20, 0x20, 0x20, 0x20]
       - delay: 10ms
 
       - lambda: |- # Detect no CAN reply
