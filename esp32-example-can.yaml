@@ -290,7 +290,7 @@ interval:
             can_mesg[0] = 0x00;
             if ((id(charging_switch).state) & (id(inverter_charging).state)) {
                if ((jk_errormask & 0x04) | (jk_errormask & 0x400) | (jk_errormask & 0x02) | (jk_errormask & 0x10) | (jk_errormask & 0x100) | (jk_errormask & 0x1000) | (jk_errormask & 0x2000)) { // Disable charging on overvoltage/overtemperature/jkbms error
-                can_mesg[0] = 0x00;
+                can_mesg[0] = can_mesg[0];
                } else {
                 can_mesg[0] = 0x80;
                }
