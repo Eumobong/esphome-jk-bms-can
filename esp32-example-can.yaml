@@ -12,7 +12,7 @@ substitutions:
 # --------------------------------------
 # Battery Charging setting:
 # This is max charging amps eg 50A, for Bulk - Constant Current charging(CC), should be at least 10A less than BMS change current protection, 0.5C max 
-  charge_a: "80"
+  charge_a: "90"
 # Absorption Voltage for Constant Voltage charging(CV). This is Absorption voltage you want the inverter to change with 55.2 eg 3.45v/cell for 16 cells 48V battery. Max of 57.6V for Deye
   absorption_v: "55.2"
 # Absorption time in minutes to hold charge voltage after charge voltage is reached eg 30
