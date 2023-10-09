@@ -2,7 +2,7 @@
 # V1.13.3 Improve compatibility with Deye and other inverters
 # V1.13.2 Send Max Temperature of T1, T2 to inverter
 # V1.13.1 Fix compile issues with new version of ESPhome 2023.4.0, set rebulk offset to 2.5
-# Edited to resolve bug that makes charging to stop at a point in bulk stage
+# edited to correct inverter stopping to charge at a point in bulk stage
 substitutions:
 # --------------------------
 # name that will appear in esphome and homeassistant.
