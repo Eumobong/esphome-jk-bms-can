@@ -228,7 +228,12 @@ interval:
             } else {
                 id(charge_status) = "Suspend";
             }
-            if ((id(charge_status) == "Bulk") | (id(charge_status) == "Absorption") | (id(charge_status) == "Balancing")) {
+            if (max(id(temperature_sensor_1).state, id(temperature_sensor_2).state) > 45) { //if battery temp is higher than 45 deg C stop charging
+               can_mesg[0] = uint16_t((id(charging_voltage).state - ${float_offset}) * 10) & 0xff;
+               can_mesg[1] = uint16_t((id(charging_voltage).state - ${float_offset}) * 10) >> 8 & 0xff;
+               can_mesg[2] = 0x00;
+               can_mesg[3] = 0x00;            
+            } else if ((id(charge_status) == "Bulk") | (id(charge_status) == "Absorption") | (id(charge_status) == "Balancing")) {
                can_mesg[0] = uint16_t(id(charging_voltage).state * 10) & 0xff;
                can_mesg[1] = uint16_t(id(charging_voltage).state * 10) >> 8 & 0xff;
                can_mesg[2] = uint16_t(id(charging_current).state * 10) & 0xff;
