@@ -12,7 +12,7 @@ substitutions:
 # --------------------------------------
 # Battery Charging setting:
 # This is max charging amps eg 50A, for Bulk - Constant Current charging(CC), should be at least 10A less than BMS change current protection, 0.5C max 
-  charge_a: "60"
+  charge_a: "84"
 # Absorption Voltage for Constant Voltage charging(CV). This is Absorption voltage you want the inverter to change with 55.2 eg 3.45v/cell for 16 cells 48V battery. 
   absorption_v: "55.2"
 # Absorption time in minutes to hold charge voltage after charge voltage is reached eg 30
@@ -21,6 +21,8 @@ substitutions:
   rebulk_offset: "2.5"
 # Float offset, x Volts below absorbtion voltage to float battery
   float_offset: "1.6"
+# Trottle_offset, x Amps below charging current when battery is below 31% or above 97%
+  trottle_offset: "56"
 # --------------------------------------
 # Battery Discharge setting:
 # Max discharge amps eg 100, should be at least 10A less than BMS over dischange current protection, 0.5C max
@@ -228,21 +230,26 @@ interval:
             } else {
                 id(charge_status) = "Suspend";
             }
-            if (max(id(temperature_sensor_1).state, id(temperature_sensor_2).state) > 45) { //if battery temp is higher than 45 deg C stop charging
+            if ((max(id(temperature_sensor_1).state, id(temperature_sensor_2).state) >= 40) | (id(max_cell_voltage).state >= 3.57)) {
                can_mesg[0] = uint16_t((id(charging_voltage).state - ${float_offset}) * 10) & 0xff;
                can_mesg[1] = uint16_t((id(charging_voltage).state - ${float_offset}) * 10) >> 8 & 0xff;
                can_mesg[2] = 0x00;
-               can_mesg[3] = 0x00;            
+               can_mesg[3] = 0x00;
             } else if ((id(charge_status) == "Bulk") | (id(charge_status) == "Absorption") | (id(charge_status) == "Balancing")) {
                can_mesg[0] = uint16_t(id(charging_voltage).state * 10) & 0xff;
                can_mesg[1] = uint16_t(id(charging_voltage).state * 10) >> 8 & 0xff;
-               can_mesg[2] = uint16_t(id(charging_current).state * 10) & 0xff;
-               can_mesg[3] = uint16_t(id(charging_current).state * 10) >> 8 & 0xff;
+               if ((id(capacity_remaining).state >= 98) | (id(capacity_remaining).state <= 30)) {
+                  can_mesg[2] = uint16_t((id(charging_current).state - ${trottle_offset}) * 10) & 0xff;
+                  can_mesg[3] = uint16_t((id(charging_current).state - ${trottle_offset}) * 10) >> 8 & 0xff;
+               } else {
+                  can_mesg[2] = uint16_t(id(charging_current).state * 10) & 0xff;
+                  can_mesg[3] = uint16_t(id(charging_current).state * 10) >> 8 & 0xff;
+               }
             } else if (id(charge_status) == "Float") {
                can_mesg[0] = uint16_t((id(charging_voltage).state - ${float_offset}) * 10) & 0xff;
                can_mesg[1] = uint16_t((id(charging_voltage).state - ${float_offset}) * 10) >> 8 & 0xff;
-               can_mesg[2] = uint16_t(id(charging_current).state * 10) & 0xff;
-               can_mesg[3] = uint16_t(id(charging_current).state * 10) >> 8 & 0xff;        
+               can_mesg[2] = uint16_t((id(charging_current).state - ${trottle_offset}) * 10) & 0xff;
+               can_mesg[3] = uint16_t((id(charging_current).state - ${trottle_offset}) * 10) >> 8 & 0xff;      
             } else {
                can_mesg[0] = uint16_t((id(charging_voltage).state - ${float_offset}) * 10) & 0xff;
                can_mesg[1] = uint16_t((id(charging_voltage).state - ${float_offset}) * 10) >> 8 & 0xff;
@@ -623,7 +630,7 @@ number:
     id: "charging_current"
     step: 1
     min_value: 20
-    max_value: 75
+    max_value: 90
     mode: slider
     initial_value: "${charge_a}"
     unit_of_measurement: A
